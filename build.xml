@@ -1,0 +1,35 @@
+<project name="BomberBoy Server" default="run" basedir=".">
+	<description>BomberBoy centralized server</description>
+
+	<property name="src.dir" location="src" />
+	<property name="classes.dir" location="classes" />
+
+	<property name="run.mainclass" value="bomberboy.server.Main" />
+
+	<path id="project.classpath">
+	        <pathelement location="${classes.dir}" />
+	</path>
+	
+	<target name="init">
+		<mkdir dir="${classes.dir}" />
+	</target>
+	
+	<target name="clean"
+		description="Delete build directory" >
+	    <delete dir="${classes.dir}" />
+	    </target>
+
+	<target name="compile" depends="init" description="Compile source code">
+		<javac srcdir="${src.dir}" destdir="${classes.dir}"
+		includeantruntime="false" debug="true">
+			 <classpath refid="project.classpath" />
+		</javac>
+	</target>
+
+	<target name="run" depends="compile" description="Run server on the port 8086.">
+		<java classname="${run.mainclass}" fork="false">
+		  <arg value="8086"/>
+			 <classpath refid="project.classpath" />
+		</java>
+	</target>
+</project>
