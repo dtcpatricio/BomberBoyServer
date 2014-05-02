@@ -12,20 +12,22 @@ public class SettingsReader {
     private static ArrayList<Robot> robots;
     private static Stack<Player> players;
     private static GameSettings settings;
-    private static int nextid;
+    private static int nextplayerid;
+    private static int nextrobotid;
 
     public static GameSettings getSettings() {
         return settings;
     }
 
-    public static void readSettings(BufferedReader reader) throws NoSuchTypeException {
+    public static void readSettings(BufferedReader reader, GameBoard board) throws NoSuchTypeException {
 
         robots = new ArrayList<Robot>();
         players = new Stack<Player>();
 
         ArrayList<String> mapStrings = new ArrayList<String>();
 	int SIZE = GameBoard.SIZE;
-	nextid = 1;
+	nextplayerid = 1;
+	nextrobotid = 1;
 
         try {
             String s = reader.readLine();
@@ -40,7 +42,7 @@ public class SettingsReader {
         Types[][] map = new Types[SIZE][SIZE];
 
         for (int i = 9; i < mapStrings.size(); i++) {
-            parseString(mapStrings.get(i), map[i - 9], i - 9);
+            parseString(mapStrings.get(i), map[i - 9], i - 9, board);
         }
 
         SettingsReader.settings = new GameSettings(mapStrings.get(0).substring(3),
@@ -53,10 +55,10 @@ public class SettingsReader {
                 Integer.parseInt(mapStrings.get(7).substring(3)),
                 map, robots, players);
 
-        //status.initializeGameStatus(settings);
+        board.initializeGameBoard(settings);
     }
 
-    private static void parseString(String l, Types[] typeLine, int x) throws NoSuchTypeException {
+    private static void parseString(String l, Types[] typeLine, int x, GameBoard board) throws NoSuchTypeException {
         for (int y = 0; y < l.length(); y++) {
             char p = l.charAt(y);
             if (p == '-') {
@@ -67,10 +69,10 @@ public class SettingsReader {
                 typeLine[y] = Types.BARRIER;
             } else if (p == 'R') {
                 typeLine[y] = Types.ROBOT;
-                robots.add(new Robot(x, y));
+                robots.add(new Robot(x, y, nextrobotid++, board));
             } else if (p == 'P') {
                 typeLine[y] = Types.NULL;
-                players.push(new Player(x, y, nextid++));
+                players.push(new Player(x, y, nextplayerid++));
             } else {
                 throw new NoSuchTypeException(p);
             }

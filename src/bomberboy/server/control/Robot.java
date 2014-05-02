@@ -1,6 +1,7 @@
 package bomberboy.server.control;
 
 import bomberboy.server.map.SettingsReader;
+import bomberboy.server.map.GameBoard;
 
 public class Robot extends Thread {
 
@@ -12,10 +13,13 @@ public class Robot extends Thread {
     private Boolean dead;
     private Boolean bomb;
     private Integer id;
+    private GameBoard board;
 
-    public Robot(Integer x, Integer y) {
+    public Robot(Integer x, Integer y, Integer id, GameBoard board) {
         this.x = x;
         this.y = y;
+	this.id = id;
+	this.board = board;
         this.dead = false;
         this.bomb = false;
     }
@@ -41,23 +45,21 @@ public class Robot extends Thread {
 
 
     private Player getClosestPlayer() {
-        // Player player = null;
-        // Double currentDistance = 0d;
+        Player player = null;
+        Double currentDistance = 0d;
 
-        // for (Player p : status.getPlayers()) {
-        //     Double cD = getDistance(p);
-        //     if (player == null) {
-        //         player = p;
-        //         currentDistance = cD;
-        //     } else if (cD < currentDistance) {
-        //         player = p;
-        //         currentDistance = cD;
-        //     }
-        // }
-
-        // return player;
-	return null;
+        for (Player p : board.getPlayers()) {
+	    Double cD = getDistance(p);
+	    if (player == null) {
+		player = p;
+		currentDistance = cD;
+	    } else if (cD < currentDistance) {
+		player = p;
+		currentDistance = cD;
+	    }
 	}
+	return player;
+    }
 
     @Override
     public void run() {
@@ -77,6 +79,7 @@ public class Robot extends Thread {
                     move(closest.getMoveFour());
                 }
             } catch (InterruptedException e) {
+		System.err.println("InterruptedException: " + e.getMessage());
                 killRobot();
             }
         }
@@ -115,7 +118,7 @@ public class Robot extends Thread {
     }
 
     public boolean move(Movements e) {
-        return true; //status.move(e, id);
+        return board.move(e, id);
     }
 
     public boolean dropBomb() {

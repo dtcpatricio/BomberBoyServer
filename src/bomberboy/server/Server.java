@@ -25,17 +25,16 @@ class Server
 
     _port = port;
 
-    try
-      {
+    try {
 	serverSocket = new ServerSocket(_port);
-      }
-    catch(IOException ioe)
-      {
+    } catch(IOException ioe) {
 	System.err.println("Error listening on port " + _port +
 			   "\nPort is being used or is system-reserved\n" +
 			   "Server shuting down...");
 	System.exit(1);
-      }
+    }
+
+    game = new GameBoard();
 
   }  
 
@@ -94,9 +93,10 @@ class Server
     String playerName = params[1];
     String url = params[2];
 
-    if(game == null)
+    if(!game.isRunning())
 	{
-	    game = new GameBoard();
+	    game.beginGame();
+	    System.err.println("Game started!");
 	}
 
     boolean success = game.addPlayer(playerName, url);
@@ -115,7 +115,7 @@ class Server
       Integer ynew = Integer.parseInt(params[3]);
     
     try {
-	game.smellPos(id, xnew, ynew);
+	game.smellMove(id, xnew, ynew);
       }
     catch(NullPointerException npe)
       {
@@ -125,15 +125,14 @@ class Server
 
   }
 
-  private void updateBanana(String[] params)
-  {
-    String playerName = params[1];
-    String bananaX = params[2];
-    String bananaY = params[3];
+  private void updateBanana(String[] params) {
+      Integer id = Integer.parseInt(params[1]);
+      Integer bananaX = Integer.parseInt(params[2]);
+      Integer bananaY = Integer.parseInt(params[3]);
 
     try
       {
-	game.bananaPos(playerName, bananaX, bananaY);
+	game.bananaDump(id, bananaX, bananaY);
       }
     catch(NullPointerException npe)
       {
