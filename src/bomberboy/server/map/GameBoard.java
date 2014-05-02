@@ -14,10 +14,11 @@ public class GameBoard
 {
     public static int MAXPLAYERS = 3;
     public static int SIZE = 19;
-    private Types[][] map;
+    private Types[][] board;
     private GameSettings settings;
     private Map<Integer, Player> players;
     private Map<Integer, String> playersURL;
+    private Stack<Player> playerStack;
 
     public GameBoard()
     {
@@ -27,15 +28,21 @@ public class GameBoard
 	    FileInputStream fis = new FileInputStream("src/bomberboy/server/map/files/l1.map");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 	    SettingsReader.readSettings(br);
+	    settings = SettingsReader.getSettings();
 	} catch(FileNotFoundException fnfe) {
 	    System.err.println("FileNotFoundException: " + fnfe.getMessage());
 	    System.exit(1);
+	} catch(NoSuchTypeException nste) {
+	    System.err.println("NoSuchTypeException: " + nste.getMessage());
+	    nste.printStackTrace();
+	    System.exit(-1);
 	}
 	
-	settings = SettingsReader.getSettings();
+
 	setMap(settings.getMap());
 	players = new Hashtable<Integer, Player>();
 	playersURL = new Hashtable<Integer, String>();
+	playerStack = (Stack<Player>) settings.getPlayers().clone();
     }
 
     private void setMap(Types[][] types) {
@@ -45,19 +52,29 @@ public class GameBoard
         }
     }
 
-    public boolean addPlayer(String name, String url, Integer x, Integer y) {
-	if(nextID <= MAXPLAYERS) {
+    public boolean addPlayer(String name, String url) {
+	if(!playerStack.empty()) {
 
-	    Player p = new Player(x, y, nextID, name, url);	    
-	    players.put(nextID, p);
-	    playersURL.put(nextID, url);
+	    String msg = "";
+	    Player p = playerStack.pop();
+	    int id = p.getID();
+	    p.setURL(url);
+	    p.setName(name);
+
+	    players.put(id, p);
+	    playersURL.put(id, url);
 	    
 	    // placeholder message for the server
-	    System.err.println("Player " + name + " joined a new game.");
+	    System.err.println("Player " + name + " joined a new game, with ID: " + id);
 	    
-	    // if there is another player in game, let's inform him
-	    String msg = "newplayer " + nextID + " " + name;
-	    BroadcastMessage bm = new BroadcastMessage(msg, getPlayersURLs(""));
+	    // inform the player (ack register) we added him with pair (id, pos)
+	    msg = "ackReg " + id + " " + p.getX() + " " + p.getY();
+	    BroadcastMessage pm = new BroadcastMessage(msg, url);
+	    pm.start();
+	    
+	    // if there are other players in game, let's inform them
+	    msg = "newplayer " + id + " " + p.getX() + " " + p.getY() + " " + name;
+	    BroadcastMessage bm = new BroadcastMessage(msg, getPlayersURLs(url));
 	    bm.start();
 	    return true;
 	}
@@ -65,32 +82,27 @@ public class GameBoard
 	return false;
     }
 
-    public void smellPos(String serverID, String posX, String posY)
-    {
-	int id = Integer.parseInt(serverID);
-	int x = Integer.parseInt(posX);
-	int y = Integer.parseInt(posY);
-
+    public void smellPos(Integer id, Integer xpos, Integer ypos) {
 	Player p = players.get(id);
 	int oldx = p.getX();
 	int oldy = p.getY();
-
-	String dir = "";
-	if(oldx < x)
+	
+	String dir = "still"; // in case the smelly moves against a wall
+	if(oldx < xpos)
 	    dir = "down";
-	if(oldx > x)
+	if(oldx > xpos)
 	    dir = "up";
-	if(oldy < y)
+	if(oldy < ypos)
 	    dir = "right";
-	if(oldy > y)
+	if(oldy > ypos)
 	    dir = "left";
 
 	String name = p.getName();
 	// placeholder debug message
-	System.err.println("Smelly " + name + " moved to " + x + ", " + y);
+	System.err.println("Smelly " + name + " moved to " + xpos + ", " + ypos);
 
-	map[oldx][oldy] = Types.NULL;
-	map[x][y] = getPlayer(name); // should use id instead
+	board[oldx][oldy] = Types.NULL;
+	board[xpos][ypos] = Types.SMELLY1; // should use id instead
 	String url = playersURL.get(id);
 
 	// comunicate changes to other players
@@ -106,7 +118,7 @@ public class GameBoard
 
 	System.err.println("Smelly " + name + " threw a banana on " + x + ", " + y);
 
-	map[x][y] = Types.BANANA;
+	board[x][y] = Types.BANANA;
 	int id = getIdByName(name);
 	String url = playersURL.get(id);
 

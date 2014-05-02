@@ -1,5 +1,7 @@
 package bomberboy.server.control;
 
+import bomberboy.server.map.SettingsReader;
+
 public class Robot extends Thread {
 
     private static double SLEEPTIME;
@@ -113,11 +115,11 @@ public class Robot extends Thread {
     }
 
     public boolean move(Movements e) {
-        return status.move(e, id);
+        return true; //status.move(e, id);
     }
 
     public boolean dropBomb() {
-        return status.dropBomb(id);
+        return true; //status.dropBomb(id);
     }
 
     public boolean hasBomb() {

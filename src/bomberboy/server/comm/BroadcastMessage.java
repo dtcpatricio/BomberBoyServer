@@ -14,26 +14,23 @@ public class BroadcastMessage extends Thread
     private ArrayList<String> urls;
     private PrintWriter pw;
     private String msg;
-	
-    public BroadcastMessage(String m, ArrayList<String> playersURL)
-    {
+
+    public BroadcastMessage(String m, ArrayList<String> playersURL) {
 	msg = m;
 	urls = playersURL;
     }
+    public BroadcastMessage(String m, String url) {
+	msg = m;
+	urls = new ArrayList<String>();
+	urls.add(url);
+    }
 	
     @Override
-    public void run()
-    {
-	System.err.println("running thread");
+    public void run() {
 	try {
 	    for(String s : urls) {
-		System.err.println(s);
 		Socket sock = new Socket();
-		//sock.bind(new InetSocketAddress("194.210.230.236",8089));
-		System.err.println("about to connect....");
 		sock.connect(new InetSocketAddress("localhost", 8089));
-		//		Socket sock = new Socket(s, 4444);
-		System.err.println("done");
 		
 		pw = new PrintWriter(sock.getOutputStream(), true);
 		pw.write(msg);

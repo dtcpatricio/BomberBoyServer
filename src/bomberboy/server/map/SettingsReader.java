@@ -2,15 +2,17 @@ package bomberboy.server.map;
 
 import java.util.Stack;
 import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
 
 import bomberboy.server.control.Player;
 import bomberboy.server.control.Robot;
 
-class SettingsReader {
+public class SettingsReader {
     private static ArrayList<Robot> robots;
     private static Stack<Player> players;
     private static GameSettings settings;
-    private int nextid;
+    private static int nextid;
 
     public static GameSettings getSettings() {
         return settings;
@@ -22,7 +24,7 @@ class SettingsReader {
         players = new Stack<Player>();
 
         ArrayList<String> mapStrings = new ArrayList<String>();
-
+	int SIZE = GameBoard.SIZE;
 	nextid = 1;
 
         try {
@@ -35,10 +37,10 @@ class SettingsReader {
             System.err.println("IOException: " + e.getMessage());
         }
 
-        Types[][] map = new Types[status.SIZE][status.SIZE];
+        Types[][] map = new Types[SIZE][SIZE];
 
         for (int i = 9; i < mapStrings.size(); i++) {
-            parseString(mapStrings.get(i), map[i - 9], i - 9, main);
+            parseString(mapStrings.get(i), map[i - 9], i - 9);
         }
 
         SettingsReader.settings = new GameSettings(mapStrings.get(0).substring(3),
@@ -51,7 +53,7 @@ class SettingsReader {
                 Integer.parseInt(mapStrings.get(7).substring(3)),
                 map, robots, players);
 
-        status.initializeGameStatus(settings);
+        //status.initializeGameStatus(settings);
     }
 
     private static void parseString(String l, Types[] typeLine, int x) throws NoSuchTypeException {

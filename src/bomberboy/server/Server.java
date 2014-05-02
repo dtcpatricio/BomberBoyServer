@@ -109,15 +109,13 @@ class Server
 
   }
 
-  private void updateTrashman(String[] params)
-  {
-    String id = params[1];
-    String newX = params[2];
-    String newY = params[3];
+  private void updateTrashman(String[] params) {
+      Integer id = Integer.parseInt(params[1]);
+      Integer xnew = Integer.parseInt(params[2]);
+      Integer ynew = Integer.parseInt(params[3]);
     
-    try
-      {
-	game.smellPos(id, newX, newY);
+    try {
+	game.smellPos(id, xnew, ynew);
       }
     catch(NullPointerException npe)
       {
