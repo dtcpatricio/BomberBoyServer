@@ -12,7 +12,6 @@ public class BroadcastMessage extends Thread
 
     private List<Socket> playersConn = new Vector<Socket>();
     private ArrayList<String> urls;
-    private PrintWriter pw;
     private String msg;
 
     public BroadcastMessage(String m, ArrayList<String> playersURL) {
@@ -32,9 +31,8 @@ public class BroadcastMessage extends Thread
 		Socket sock = new Socket();
 		sock.connect(new InetSocketAddress("localhost", 8089));
 		
-		pw = new PrintWriter(sock.getOutputStream(), true);
+		PrintWriter pw = new PrintWriter(sock.getOutputStream(), true);
 		pw.write(msg);
-		System.err.println(msg);
 		pw.flush();
 		pw.close();
 		sock.close();

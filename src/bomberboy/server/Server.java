@@ -42,7 +42,6 @@ class Server
 
   void start() {
       
-      String msg="";
       System.out.println("Server started. Listening on the port " + _port);
       
       while(true) {
@@ -55,8 +54,8 @@ class Server
 	      bufferedReader =
 		  new BufferedReader(inputStreamReader);
 	      
-	      msg = bufferedReader.readLine();
-	      while(!msg.isEmpty()) {
+	      String msg = bufferedReader.readLine();
+	      if(!msg.isEmpty()) {
 		  parseMsg(msg);
 		  msg = "";
 	      }
@@ -73,8 +72,7 @@ class Server
     
   private void parseMsg(String msg)
   {
-      System.err.println(msg);
-    String[] tokens = msg.split(" ");
+    String[] tokens = msg.split("\\s+");
     String command = tokens[0];
 
     if(command.equals("register"))
@@ -83,7 +81,7 @@ class Server
     if(command.equals("move"))
       updateTrashman(tokens);
 
-    if(command.equals("bomb"))
+    if(command.equals("banana"))
       updateBanana(tokens);
     
   }

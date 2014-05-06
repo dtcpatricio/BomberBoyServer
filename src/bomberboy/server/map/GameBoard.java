@@ -107,7 +107,6 @@ public class GameBoard
     public boolean addPlayer(String name, String url) {
 	if(!playerStack.empty()) {
 
-	    String msg = "";
 	    Player p = playerStack.pop();
 	    int id = p.getID();
 	    p.setURL(url);
@@ -117,17 +116,25 @@ public class GameBoard
 	    playersURL.put(id, url);
 	    
 	    // placeholder message for the server
-	    System.err.println("Player " + name + " joined a new game, with ID: " + id);
+	    System.err.println("Player " + name + " joined a new game, with ID: " + id + "\nand url " + url);
 	    
 	    // inform the player (ack register) we added him with pair (id, pos)
-	    msg = "ackReg " + id + " " + p.getX() + " " + p.getY();
-	    BroadcastMessage pm = new BroadcastMessage(msg, url);
+	    String msgpm = "ackReg " + id + " " + p.getX() + " " + p.getY();
+	    BroadcastMessage pm = new BroadcastMessage(msgpm, url);
 	    pm.start();
 	    
-	    // if there are other players in game, let's inform them
-	    msg = "newplayer " + id + " " + p.getX() + " " + p.getY() + " " + name;
-	    BroadcastMessage bm = new BroadcastMessage(msg, getPlayersURLs(url));
-	    bm.start();
+	    if(players.size() > 1) {
+		Collection<Player> playerColl = players.values();
+		for(Player c : playerColl) {
+		    String playeronserver = "newplayer " + c.getID() + " " + c.getX() + " " + c.getY() + " " + c.getName();
+		    BroadcastMessage toplayer = new BroadcastMessage(playeronserver, url);
+		    toplayer.start();
+		}
+		// if there are other players in game, let's inform them
+		String msgbm = "newplayer " + id + " " + p.getX() + " " + p.getY() + " " + name;
+		BroadcastMessage bm = new BroadcastMessage(msgbm, getPlayersURLs(url));
+		bm.start();
+	    }
 	    return true;
 	}
 	
@@ -140,18 +147,26 @@ public class GameBoard
 	int oldy = p.getY();
 	
 	String dir = "still"; // in case the smelly moves against a wall
-	if(oldx < xpos)
+	if(oldx < xpos) {
 	    dir = "down";
-	if(oldx > xpos)
+	    p.incX();
+	}
+	if(oldx > xpos) {
 	    dir = "up";
-	if(oldy < ypos)
+	    p.decX();
+	}
+	if(oldy < ypos) {
 	    dir = "right";
-	if(oldy > ypos)
+	    p.incY();
+	}
+	if(oldy > ypos) {
 	    dir = "left";
+	    p.decY();
+	}
 
 	String name = p.getName();
 	// placeholder debug message
-	System.err.println("Smelly " + name + " moved to " + xpos + ", " + ypos);
+	System.err.println("Smelly " + name + " moved to " + xpos + ", " + ypos + "\ndirection " + dir);
 
 	board[oldx][oldy] = Types.NULL;
 	board[xpos][ypos] = Types.SMELLY1; // should use id to figure the type of smelly (1, 2 or 3)
@@ -163,12 +178,11 @@ public class GameBoard
 	bm.start();
     }
 
-    public void bananaDump(Integer id, Integer xpos, Integer ypos)
-    {
-
+    public void bananaDump(Integer id, Integer xpos, Integer ypos) {
+	
 	Player p = players.get(id);
 	System.err.println("Smelly " + p.getName() + " took a dump of banana on " + xpos + ", " + ypos);
-
+	
 	board[xpos][ypos] = Types.BANANA;
 	String url = playersURL.get(id);
 
@@ -176,9 +190,8 @@ public class GameBoard
 	String msg = "banana " + xpos + " " + ypos;
 	BroadcastMessage bm = new BroadcastMessage(msg, getPlayersURLs(url));
 	bm.start();
-
-	// start server side bomb
 	
+	// start server side bomb
     }
 
     // old method to get the player Type. Must be changed to use players Map and id as arg.
@@ -244,7 +257,6 @@ public class GameBoard
     public boolean move(Movements e, Integer id) {
         synchronized (lock) {
             Robot r = null;
-	    System.err.println("moving robot with id: " + id);
 	    r = robots.get(id);
 
             if (!canMove(e, r)) return false;
@@ -269,7 +281,6 @@ public class GameBoard
 
 	    movePlace(r);
 	    String msg = "robot " + r.getID() + " " + r.getX() + " " + r.getY();
-	    System.err.println(msg);
 	    BroadcastMessage bm = new BroadcastMessage(msg, getPlayersURLs(""));
             bm.start();
 
